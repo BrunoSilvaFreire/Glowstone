@@ -2,6 +2,7 @@ package net.glowstone.block;
 
 import java.io.InputStreamReader;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import net.glowstone.inventory.ToolType;
@@ -34,16 +35,21 @@ public class BuiltinMaterialValueManager implements MaterialValueManager {
         ConfigurationSection valuesSection
                 = mainSection.getConfigurationSection("values"); // NON-NLS
         Set<String> materials = valuesSection.getKeys(false);
+        Set<String> missingMaterials = new HashSet<>();
         for (String strMaterial : materials) {
             Material material = Material.matchMaterial(strMaterial);
             if (material == null) {
-                throw new RuntimeException(
-                        "Invalid builtin/materialValues.yml: Couldn't find material: "
-                        + strMaterial);
+                missingMaterials.add(strMaterial);
+                continue;
             }
             ConfigurationSection materialSection
                     = valuesSection.getConfigurationSection(strMaterial);
             values.put(material, new BuiltinValueCollection(material, materialSection));
+        }
+        if (!missingMaterials.isEmpty()) {
+
+            throw new RuntimeException(
+                    "Invalid builtin/materialValues.yml: Couldn't find some materials: " + String.join(", ", missingMaterials));
         }
     }
 
